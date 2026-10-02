@@ -44,6 +44,23 @@ struct RecorderView: View {
                     .font(.caption).foregroundStyle(.secondary)
                 Button("Show folder", systemImage: "folder") { NSWorkspace.shared.open(model.folder) }
             }
+            if model.exporting {
+                HStack(spacing: 12) {
+                    Text("Exporting " + model.exportTitle).font(.caption).lineLimit(1)
+                    Spacer()
+                    ProgressView(value: model.exportProgress).frame(width: 120)
+                        .accessibilityLabel("Export progress")
+                    Text("\(Int(model.exportProgress * 100))%").font(.caption.monospaced())
+                    Button("Cancel") { model.cancelExport() }
+                }
+            } else if let exported = model.lastExportURL {
+                HStack {
+                    Label("Exported " + exported.lastPathComponent, systemImage: "checkmark.circle")
+                        .font(.caption).lineLimit(1)
+                    Spacer()
+                    Button("Show export") { NSWorkspace.shared.activateFileViewerSelecting([exported]) }
+                }
+            }
             if model.library.isEmpty {
                 ContentUnavailableView("Your sound, on hand", systemImage: "waveform",
                     description: Text("Recordings stay on this Mac. Play or export them anytime."))
@@ -104,7 +121,7 @@ struct RecorderView: View {
                     .font(.headline).padding(.horizontal, 18).padding(.vertical, 10)
             }
             .buttonStyle(.borderedProminent).tint(accent).foregroundStyle(.black)
-            .disabled(model.starting || (!model.recording && (model.selected == nil || model.selected?.builtIn == true)))
+            .disabled(model.exporting || model.starting || (!model.recording && (model.selected == nil || model.selected?.builtIn == true)))
             .keyboardShortcut("r", modifiers: .command)
         }
         .padding(24).background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 20))
@@ -123,10 +140,17 @@ struct RecorderView: View {
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
-                Button("Export", systemImage: "square.and.arrow.up") { model.export(audio) }
-                    .disabled(model.recording)
+                Menu {
+                    ForEach(AudioExportFormat.allCases, id: \.self) { format in
+                        Button(format.title) { model.export(audio, as: format) }
+                    }
+                } label: {
+                    Label("Export", systemImage: "square.and.arrow.up")
+                }
+                .disabled(model.recording || model.starting || model.exporting)
+                .help("Save the original CAF or a smaller, lossy M4A copy")
                 Button { deleting = audio } label: { Image(systemName: "trash") }
-                    .help("Delete recording")
+                    .help("Delete recording").disabled(model.exporting)
             }
             if model.playingURL == audio.url {
                 Slider(value: Binding(get: { model.position }, set: { model.seek($0) }),
@@ -173,6 +197,14 @@ final class EchoDelegate: NSObject, NSApplicationDelegate {
     let recorder = Recorder()
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         recorder.stop()
+        if recorder.exporting {
+            recorder.cancelExport()
+            Task { @MainActor in
+                while self.recorder.exporting { try? await Task.sleep(for: .milliseconds(50)) }
+                sender.reply(toApplicationShouldTerminate: true)
+            }
+            return .terminateLater
+        }
         return .terminateNow
     }
 }

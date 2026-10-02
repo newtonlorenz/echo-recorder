@@ -28,14 +28,18 @@ enum AudioFiles {
         let staging = destination.deletingLastPathComponent().appendingPathComponent(".echo-\(UUID().uuidString).caf")
         do {
             try FileManager.default.copyItem(at: source, to: staging)
-            if FileManager.default.fileExists(atPath: destination.path) {
-                _ = try FileManager.default.replaceItemAt(destination, withItemAt: staging)
-            } else {
-                try FileManager.default.moveItem(at: staging, to: destination)
-            }
+            try installExport(staging, at: destination)
         } catch {
             try? FileManager.default.removeItem(at: staging)
             throw error
+        }
+    }
+
+    static func installExport(_ staging: URL, at destination: URL) throws {
+        if FileManager.default.fileExists(atPath: destination.path) {
+            _ = try FileManager.default.replaceItemAt(destination, withItemAt: staging)
+        } else {
+            try FileManager.default.moveItem(at: staging, to: destination)
         }
     }
 }

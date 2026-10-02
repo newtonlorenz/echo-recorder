@@ -11,3 +11,8 @@ xcrun swiftc -swift-version 5 -target "$(uname -m)-apple-macos14.0" \
   "$task_root/Sources/SpectrumAnalysis.swift" "$task_root/Tests/SpectrumChecks.swift" \
   -o "$task_root/build/SpectrumChecks"
 "$task_root/build/SpectrumChecks"
+
+xcrun swiftc -swift-version 5 -target "$(uname -m)-apple-macos14.0" \
+  "$task_root/Sources/AudioFiles.swift" "$task_root/Sources/AudioExport.swift" \
+  "$task_root/Tests/ExportChecks.swift" -o "$task_root/build/ExportChecks"
+"$task_root/build/ExportChecks"

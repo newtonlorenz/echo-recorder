@@ -40,3 +40,18 @@ only capture while awake, not this app's USB or locked-phone behavior.
 Keep the Mac powered with its lid open. Do not label locked-phone endurance
 verified until these checks pass on the configuration concerned.
 See [capture research](recording-method.md) and [phone preparation](phone-preparation.md).
+
+## Compressed export — 2026-10-02
+
+- AAC M4A exports decoded successfully and retained duration and channel count.
+- Synthetic inputs covered 48 kHz stereo, 44.1 kHz mono, and 96 kHz stereo.
+- Encoded files were smaller; original CAF bytes stayed unchanged.
+- Original-format exports and replacements remained byte-exact.
+- Both export formats cancelled during active processing without changing the
+  existing destination. Temporary files were removed.
+- Invalid input and attempts to compress over the original were rejected safely.
+- Exports run in the background; recording and deletion are disabled during export.
+- Quitting cancels the export and waits for temporary-file cleanup.
+
+These checks use generated tones, not private recordings. AAC export is lossy
+and uses Apple's native M4A preset; the UI does not promise a fixed bitrate.

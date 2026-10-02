@@ -3,6 +3,7 @@ import AVFoundation
 import CoreAudio
 import Observation
 import AppKit
+import UniformTypeIdentifiers
 import IOKit.pwr_mgt
 
 @MainActor @Observable
@@ -11,6 +12,10 @@ final class Recorder: NSObject, AVAudioRecorderDelegate, AVAudioPlayerDelegate {
     var selectedID: AudioDeviceID = 0
     var library: [SavedAudio] = []
     var recording = false
+    var exporting = false
+    var exportProgress: Double = 0
+    var exportTitle = ""
+    var lastExportURL: URL?
     var starting = false
     var elapsed: Double = 0
     var level: Float = -160
@@ -22,6 +27,8 @@ final class Recorder: NSObject, AVAudioRecorderDelegate, AVAudioPlayerDelegate {
     var playing = false
     var position: Double = 0
     let folder: URL
+    @ObservationIgnored private var exportJob: AudioExportJob?
+    @ObservationIgnored private var exportTask: Task<Void, Never>?
     @ObservationIgnored private var monitor: InputMonitor?
     @ObservationIgnored private var fallbackHeldPeaks: [Float] = []
     @ObservationIgnored private var recorder: AVAudioRecorder?
@@ -62,7 +69,7 @@ final class Recorder: NSObject, AVAudioRecorderDelegate, AVAudioPlayerDelegate {
     }
 
     func start() async {
-        guard !recording, !starting else { return }
+        guard !recording, !starting, !exporting else { return }
         starting = true
         defer { starting = false }
         guard let input = selected, !input.builtIn else {
@@ -124,6 +131,7 @@ final class Recorder: NSObject, AVAudioRecorderDelegate, AVAudioPlayerDelegate {
     }
 
     func tick() {
+        if let exportJob { exportProgress = exportJob.progress }
         if recording, let recorder {
             elapsed = recorder.currentTime
             recorder.updateMeters()
@@ -226,17 +234,57 @@ final class Recorder: NSObject, AVAudioRecorderDelegate, AVAudioPlayerDelegate {
         playing = false
     }
 
-    func export(_ audio: SavedAudio) {
+    func export(_ audio: SavedAudio, as format: AudioExportFormat) {
+        guard !recording, !starting, !exporting else { return }
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = audio.url.lastPathComponent
+        panel.allowedContentTypes = [format == .original ? UTType(filenameExtension: "caf")! : .mpeg4Audio]
+        panel.allowsOtherFileTypes = false
+        panel.nameFieldStringValue = audio.title + "." + format.fileExtension
+        panel.message = format == .original
+            ? "Save an exact copy of the original recording."
+            : "Save a smaller AAC audio file. Compression is lossy; your original stays unchanged."
         panel.begin { [weak self] response in
-            guard response == .OK, let destination = panel.url else { return }
-            do { try AudioFiles.export(audio.url, to: destination) }
-            catch { self?.error = error.localizedDescription }
+            guard let self, response == .OK, let destination = panel.url else { return }
+            guard !self.recording, !self.starting, !self.exporting else { return }
+            let destinationPath = destination.resolvingSymlinksInPath().standardizedFileURL.path
+            let libraryPath = self.folder.resolvingSymlinksInPath().standardizedFileURL.path
+            guard !destinationPath.hasPrefix(libraryPath + "/") else {
+                self.error = "Export outside the recording library to protect your original recordings."
+                return
+            }
+            let job = AudioExportJob(source: audio.url, destination: destination, format: format)
+            self.exportJob = job
+            self.exportProgress = 0
+            self.exportTitle = audio.title
+            self.lastExportURL = nil
+            self.exporting = true
+            self.exportTask = Task { @MainActor [self] in
+                var exportSleepAssertion: IOPMAssertionID = 0
+                _ = IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleSystemSleep as CFString,
+                    IOPMAssertionLevel(kIOPMAssertionLevelOn), "Echo audio export" as CFString, &exportSleepAssertion)
+                defer {
+                    if exportSleepAssertion != 0 { IOPMAssertionRelease(exportSleepAssertion) }
+                    self.exportJob = nil
+                    self.exportTask = nil
+                    self.exporting = false
+                }
+                do {
+                    try await job.run()
+                    self.exportProgress = 1
+                    self.lastExportURL = destination
+                } catch is CancellationError {
+                    self.exportProgress = 0
+                } catch {
+                    self.error = "Export failed: " + error.localizedDescription
+                }
+            }
         }
     }
 
+    func cancelExport() { exportJob?.cancel() }
+
     func delete(_ audio: SavedAudio) {
+        guard !exporting else { return }
         if playingURL == audio.url { stopPlayback() }
         do { try FileManager.default.removeItem(at: audio.url); refreshLibrary() }
         catch { self.error = error.localizedDescription }

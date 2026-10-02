@@ -13,11 +13,13 @@ Share device and software versions with results, never private recordings.
 
 - `Recorder` owns capture state, the library, playback, and sleep prevention.
 - `AudioInputs` discovers Core Audio inputs and manages the default-input route.
-- `AudioFiles` handles library metadata and original-byte exports.
+- `AudioFiles` handles library metadata and atomic export replacement.
+- `AudioExportJob` copies original bytes or makes a cancellable AAC M4A export.
 - `InputMonitor` and `SpectrumAnalysis` provide bounded, read-only monitoring.
 - SwiftUI views present that state. Keep UI changes separate from audio capture.
 - Keep recordings streaming to disk and monitoring buffers bounded.
-- Do not add gain, EQ, lossy encoding, or cloud uploads without an explicit design.
+- Keep capture lossless. Lossy encoding is an explicit export choice only.
+- Do not add gain, EQ, or cloud uploads without an explicit design.
 - Report capture and monitor failures clearly; protect active and partial takes.
 - Use synthetic audio for automated checks. Never commit recordings or secrets.
 - Describe hardware-dependent behavior as verified only with actual test evidence.

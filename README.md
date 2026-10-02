@@ -9,7 +9,7 @@ over USB or use a stereo line-input audio interface.
 - Float32 PCM CAF recordings at the input's nominal sample rate, up to stereo.
 - No application duration limit; recordings stream to disk.
 - Live 14-band spectrum, stereo sample-peak meters, peak hold, and clipping warnings.
-- Playback, seeking, original-byte export, and a local recording library.
+- Playback, seeking, original-byte CAF or compressed M4A export, and a local recording library.
 - Keeps the Mac awake during recording; stops on detected disconnection, input
   change, low storage, or capture error, preserving the captured portion.
 - Phone-preparation guide for Auto-Lock, Focus, and other sound interruptions.
@@ -69,7 +69,14 @@ sound is suppressed. Mixed sounds cannot reliably be separated afterward.
 CAF avoids WAV's conventional 4 GB file limit. At 48 kHz stereo float32, allow
 about **1.38 GB per hour** plus free space. Files stay in
 `~/Library/Application Support/EchoRecorder`; **Show folder** opens the library.
-Export copies the original file bytes.
+Choose **Export → Original · Lossless CAF** for an exact copy of the recording.
+Choose **Export → Compressed · M4A (AAC)** for a smaller file that plays on most
+phones and computers. AAC compression is lossy; the original CAF stays unchanged.
+
+Exports run in the background with progress and **Cancel**. Echo keeps the Mac
+awake during export. A temporary file is finalized before replacing a destination;
+cancellation or an encoding error preserves any existing file. **Show export**
+opens the result in Finder. Recording and deletion are disabled during export.
 
 Lossless storage avoids an additional lossy encoding step. It cannot improve
 the source audio or undo an interface's conversion. The spectrum is a display,
@@ -91,7 +98,9 @@ bash build.sh
 
 Checks use synthetic audio only: PCM samples and metadata, duration, library
 exclusion, byte-exact exports, spectrum calibration, stereo phase, clipping,
-invalid samples, and silence. They do not record phone or microphone audio.
+invalid samples, and silence. Compressed export checks cover playable AAC,
+duration, mono/stereo inputs, smaller files, original preservation, cancellation,
+and safe replacement. They do not record phone or microphone audio.
 See [validation and device checks](docs/validation.md). GitHub Actions builds
 the app and runs these checks on macOS.
 

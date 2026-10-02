@@ -8,6 +8,8 @@ See README.md, CONTRIBUTING.md, and docs/validation.md before making changes.
 
 Keep recording in AVAudioRecorder with float32 PCM CAF and no duration limit.
 Do not accumulate whole takes in memory or apply processing to recorded audio.
+Allow compressed AAC M4A as an explicit export; never replace library originals.
+Keep exports cancellable and finalize staging files before destination replacement.
 InputMonitor uses a separate bounded AVAudioEngine tap for spectrum and peaks.
 Monitoring failures must not stop an otherwise healthy take.
 Protect active recordings during app updates, file export, and deletion.
