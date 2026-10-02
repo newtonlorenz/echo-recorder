@@ -1,0 +1,30 @@
+name: macOS build and checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Synthetic audio checks
+        run: bash check.sh
+      - name: Standalone app build and signature
+        run: |
+          bash build.sh
+          codesign --verify --deep --strict "build/Echo Recorder.app"
+      - name: Xcode Release build
+        run: |
+          xcodebuild -quiet -project EchoRecorder.xcodeproj -scheme EchoRecorder \
+            -configuration Release -destination 'platform=macOS' \
+            -derivedDataPath "$RUNNER_TEMP/EchoRecorderDerivedData" build

@@ -1,0 +1,20 @@
+# Generated builds and local state
+build/
+DerivedData/
+backups/
+*.app/
+*.dSYM/
+*.xcuserstate
+xcuserdata/
+.DS_Store
+
+# Recordings and local credentials never belong in source control
+*.caf
+*.wav
+*.aiff
+*.m4a
+*.mp4
+.env
+.env.*
+*.pem
+*.key
