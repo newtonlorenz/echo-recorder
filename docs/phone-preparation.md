@@ -12,7 +12,7 @@ The public INFocusStatusCenter API exposes authorization and retrieval of Focus 
 
 There is a supported **system-sharing** alternative: with the same Apple Account and Settings → Focus → Share Across Devices enabled, Focus settings can be used across Apple devices. The user can turn on Focus through macOS controls; that is distinct from the recorder programmatically changing phone settings over USB. Focus filters do not sync through this switch. [Apple: Set up a Focus](https://support.apple.com/guide/iphone/set-up-a-focus-iphd6288a67f/ios).
 
-The recorder receives an input stream, not a separate Endel track plus identifiable notification tracks. Once sounds overlap in that stream, it cannot reliably remove one while preserving the other exactly. Apple documents that apps can mix audio with other active app sessions, and Endel's Background Mode expressly permits playing alongside other sound sources, including calls. Prevent unwanted sound at the phone rather than promising later separation. [Apple: mixWithOthers data](https://developer.apple.com/tutorials/data/documentation/avfaudio/avaudiosession/categoryoptions-swift.struct/mixwithothers.json); [Endel background playback API](https://endel.zendesk.com/api/v2/help_center/en-us/articles/8084345471900.json).
+The recorder receives an input stream, not separate source-app and notification tracks. Once sounds overlap in that stream, it cannot reliably remove one while preserving the other exactly. Apple documents that apps can mix audio with other active app sessions. Prevent unwanted sound at the phone rather than promising later separation. [Apple: mixWithOthers data](https://developer.apple.com/tutorials/data/documentation/avfaudio/avaudiosession/categoryoptions-swift.struct/mixwithothers.json).
 
 ## If the phone must stay unlocked
 
@@ -20,7 +20,7 @@ On the iPhone, go to Settings → Display & Brightness → Auto-Lock and select 
 
 Turn off Low Power Mode before selecting an extended Auto-Lock setting. Apple says Low Power Mode sets Auto-Lock to **30 seconds**. On iPhone 15 and later the current path is Settings → Battery → Power Mode; on earlier models it is Settings → Battery. Adaptive Power can automatically enable Low Power Mode below 20% on supported devices. [Apple: Low Power Mode](https://support.apple.com/en-us/101604).
 
-Keep the phone powered for long sessions. Restore the previous Auto-Lock setting afterward. Keeping the display on uses more power; it is unnecessary if the chosen capture path has already passed a locked-phone endurance test. Neither an awake Mac nor these settings establishes that Endel capture has passed that test.
+Keep the phone powered for long sessions. Restore the previous Auto-Lock setting afterward. Keeping the display on uses more power; it is unnecessary if the chosen capture path has already passed a locked-phone endurance test. Neither an awake Mac nor these settings establishes that source-app capture has passed that test.
 
 ## Reduce other sounds before recording
 
@@ -28,10 +28,10 @@ These are user-controlled preparation steps, not settings changed by the Mac rec
 
 1. In Settings → Focus → Do Not Disturb, choose **Allow Notifications From** for People and Apps and leave both allowed lists empty. An empty **Silence Notifications From** list is not equivalent: it silences nobody. Review the calls option so no caller groups are permitted, and turn **Allow Repeated Calls** off. Apple defines repeated calls as two or more calls from the same person within three minutes.
 2. Turn **Time Sensitive Notifications** off, and turn **Intelligent Breakthrough & Silencing** off where offered. Those features deliberately allow some notifications through. Enable Do Not Disturb in Control Center and keep it active for the session. Review schedules that might change Focus during a long recording.
-3. Turn on the phone's Silent mode using its Ring/Silent switch, configured Action button, or Settings → Sounds & Haptics. Do not lower media volume to zero: Silent mode and playback volume have different purposes. Stop other audio apps before starting Endel; Silent mode does not silence audio apps or many games.
-4. Check Clock alarms, wake-up alarms, and active timers. An alarm can sound despite Silent mode, Do Not Disturb, or connected headphones. Timers continue while another app is open or the phone sleeps; a **Stop Playing** timer can halt playback. Also check Endel's own shutoff timer or timed scenario before a long session.
+3. Turn on the phone's Silent mode using its Ring/Silent switch, configured Action button, or Settings → Sounds & Haptics. Do not lower media volume to zero: Silent mode and playback volume have different purposes. Stop other audio apps before starting your source app; Silent mode does not silence audio apps or many games.
+4. Check Clock alarms, wake-up alarms, and active timers. An alarm can sound despite Silent mode, Do Not Disturb, or connected headphones. Timers continue while another app is open or the phone sleeps; a **Stop Playing** timer can halt playback. Also check the source app's own shutoff timer or timed session before a long recording.
 
-Sources for steps 1–2: [Apple: Allow or silence notifications for a Focus](https://support.apple.com/guide/iphone/allow-or-silence-notifications-for-a-focus-iph21d43af5b/ios), [Apple: Set up a Focus](https://support.apple.com/guide/iphone/set-up-a-focus-iphd6288a67f/ios). Sources for steps 3–4: [Apple: Silence iPhone](https://support.apple.com/guide/iphone/silence-iphone-iph81c7fd7d1/ios), [Apple: Set an alarm](https://support.apple.com/guide/iphone/set-an-alarm-iph2909d3a74/ios), [Apple: Set timers](https://support.apple.com/guide/iphone/set-timers-iph8241d6b2a/ios), [Endel settings API](https://endel.zendesk.com/api/v2/help_center/en-us/articles/360014879579.json), [Endel user guide API](https://endel.zendesk.com/api/v2/help_center/en-us/articles/360015068699.json).
+Sources for steps 1–2: [Apple: Allow or silence notifications for a Focus](https://support.apple.com/guide/iphone/allow-or-silence-notifications-for-a-focus-iph21d43af5b/ios), [Apple: Set up a Focus](https://support.apple.com/guide/iphone/set-up-a-focus-iphd6288a67f/ios). Sources for steps 3–4: [Apple: Silence iPhone](https://support.apple.com/guide/iphone/silence-iphone-iph81c7fd7d1/ios), [Apple: Set an alarm](https://support.apple.com/guide/iphone/set-an-alarm-iph2909d3a74/ios), [Apple: Set timers](https://support.apple.com/guide/iphone/set-timers-iph8241d6b2a/ios).
 
 ## Remaining exceptions
 
@@ -41,12 +41,12 @@ Sources: [Apple: Critical alerts documentation data](https://developer.apple.com
 
 ## Optional offline session
 
-Endel states that it works without internet because its algorithm generates sound directly on the device, including on an airplane. Offline limitations include buying a subscription, reading its What's New articles, and contacting support. [Endel: You want to use Endel offline, official API](https://endel.zendesk.com/api/v2/help_center/en-us/articles/360013981900.json).
+Check whether your source app supports offline playback and prepare any required downloads before disconnecting. Confirm playback still works without network access; availability varies by app.
 
 If the user can go without ordinary cellular calls and network access for the session, enable Airplane Mode and verify Wi-Fi stays off. Apple says Airplane Mode turns off cellular and Wi-Fi radios but leaves Bluetooth enabled by default; Wi-Fi and Bluetooth can be used while Airplane Mode is on. Turn Bluetooth off too if the session does not need it, to avoid unintended wireless routing. This is an optional tradeoff, not a requirement for recording. [Apple: Use Airplane Mode](https://support.apple.com/en-us/108785).
 
-Offline operation reduces network-delivered interruptions but does not disable local alarms, timers, or other app sounds. Verify Endel and the chosen wired input still produce audio after preparing the phone; Focus/airplane preparation is not an endurance test. Restore the user's normal connectivity, Focus, and Auto-Lock settings after the session.
+Offline operation reduces network-delivered interruptions but does not disable local alarms, timers, or other app sounds. Verify the source app and the chosen wired input still produce audio after preparing the phone; Focus/airplane preparation is not an endurance test. Restore the user's normal connectivity, Focus, and Auto-Lock settings after the session.
 
 ## Source access and scope
 
-All cited Apple pages/documentation data and Endel official Help Center APIs were fetched on 2026-10-02. iPhone menus vary with iOS version and model. Endel's human-facing Zendesk article pages previously returned HTTP 403; the official article APIs supply the cited first-party content. The app's precise input format and its long-running behavior are separate from these phone-preparation findings. See [recording-method.md](recording-method.md) for capture feasibility, the untested locked-phone endurance checks, and Endel's published recording restriction.
+Cited Apple pages and documentation data were fetched on 2026-10-02. iPhone menus vary with iOS version and model. The app’s precise input format and its long-running behavior are separate from these phone-preparation findings. See [recording-method.md](recording-method.md) for capture feasibility and the untested locked-phone endurance checks.

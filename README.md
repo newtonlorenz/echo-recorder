@@ -104,10 +104,8 @@ and the pull-request workflow.
 
 ## Recording rights
 
-Use Echo for audio you have permission to record. Endel's published terms
-expressly prohibit recording its generated app sounds; a different capture
-method does not change that restriction. Echo is a general-purpose recorder
-and is not affiliated with Endel. See the [official sources](docs/recording-method.md).
+Use Echo for audio you have permission to record. Check the source app's terms
+and any applicable recording restrictions. Echo is a general-purpose recorder.
 
 ## License
 

@@ -91,7 +91,7 @@ struct RecorderView: View {
                 ProgressView(value: model.recording ? max(0, min(1, Double(model.level + 60) / 60)) : 0)
                     .tint(accent).accessibilityLabel("Audio input level")
                 Text(model.recording && model.elapsed > 10 && model.level < -70
-                     ? "No signal yet. Check Endel and the selected input."
+                     ? "No signal yet. Check the source app and the selected input."
                      : "Saved directly to disk. No recording time limit.")
                     .font(.caption).foregroundStyle(.secondary)
             }
@@ -145,7 +145,7 @@ struct RecorderView: View {
                 .font(.headline).padding(.top, 4)
             Text("Use a Do Not Disturb Focus with no allowed apps or people. Disable allowed calls, repeated calls, Time Sensitive notifications and Intelligent Breakthrough if available. Use Silent mode, and stop alarms, timers and the source app’s sleep timer.")
             Text("If Share Across Devices is enabled, switching on Do Not Disturb in Mac Control Center can apply it to the iPhone too. Echo does not switch these phone settings automatically.")
-            Text("Endel works offline. For a disconnected session, use Airplane Mode with Wi-Fi off and Bluetooth off if unnecessary. Calls and messages will not arrive normally.")
+            Text("If your source app supports offline playback, you can use Airplane Mode with Wi-Fi off and Bluetooth off if unnecessary. Test playback first. Calls and messages will not arrive normally.")
             Text("Focus and Silent mode cannot guarantee silence: critical alerts, emergency exceptions, alarms and other media may still sound. Echo records the mixed iPhone input and cannot reliably remove overlapping sounds.")
                 .foregroundStyle(.secondary)
             Link("Apple’s Focus setup guide", destination: URL(string: "https://support.apple.com/guide/iphone/set-up-a-focus-iphd6288a67f/ios")!)
@@ -157,7 +157,7 @@ struct RecorderView: View {
             Text("Start with your USB cable").font(.headline)
             Text("1. Connect and trust the iPhone while it is unlocked.")
             Text("2. In Audio MIDI Setup, select the iPhone and click Enable if it appears. Refresh the inputs here and choose it.")
-            Text("3. Play Endel and record one minute. Lock the phone midway, then stop and listen to the saved audio.")
+            Text("3. Play audio in your source app and record one minute. Lock the phone midway, then stop and listen to the saved audio.")
             Text("If USB audio is unavailable or stops when locked, use the iPhone’s headphone adapter into a stereo line-input USB audio interface.")
                 .foregroundStyle(.secondary)
             Button("Open Audio MIDI Setup") {
